@@ -81,6 +81,7 @@ export default function Sidebar({ onLogout }) {
             </svg>
           )}
         </button>
+        <img src="/logo.jpg" alt="Logo" className="top-bar-logo" />
         <h1 className="top-bar-title">Admin Panel</h1>
         <div className="top-bar-right">
           <div className="admin-avatar">A</div>
@@ -92,13 +93,7 @@ export default function Sidebar({ onLogout }) {
       <nav className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <div className="logo-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+            <img src="/logo.jpg" alt="Logo" className="sidebar-logo-img" />
             <div>
               <h2>Parimatch</h2>
               <p>Admin Control</p>

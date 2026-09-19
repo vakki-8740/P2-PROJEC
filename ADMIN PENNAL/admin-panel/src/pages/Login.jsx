@@ -26,13 +26,7 @@ export default function Login({ onLogin }) {
     <div className="login-page">
       <div className="login-container">
         <div className="login-logo">
-          <div className="logo-box">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-          </div>
+          <img src="/logo.jpg" alt="Logo" className="login-logo-img" />
         </div>
 
         <h1 className="login-title">Admin Panel</h1>

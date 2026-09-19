@@ -17,6 +17,14 @@
   margin-bottom: 24px;
 }
 
+.login-logo-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0, 122, 255, 0.3);
+}
+
 .logo-box {
   width: 72px;
   height: 72px;
