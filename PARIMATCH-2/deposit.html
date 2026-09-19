@@ -175,6 +175,10 @@
 
             db.ref('complaints/' + mobile + '/deposit/' + complaintId).set(complaintData);
 
+            const myComplaints = JSON.parse(localStorage.getItem('myComplaints') || '[]');
+            myComplaints.push({ id: complaintId, ...complaintData });
+            localStorage.setItem('myComplaints', JSON.stringify(myComplaints));
+
             getTelegramSettings().then(tg => {
                 if (tg.complaintBotToken && tg.complaintChatId) {
                     const msg = `🚨 <b>New Complaint - Deposit</b>\n\n👤 Name: ${complaintData.username}\n📱 Mobile: ${mobile}\n📧 Email: ${complaintData.email}\n📝 Problem: ${complaintData.problem}\n⏰ Time: ${now.toLocaleString()}`;

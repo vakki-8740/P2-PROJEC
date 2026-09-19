@@ -137,6 +137,26 @@
                     image2: images[1],
                     image3: images[2]
                 });
+
+                const myComplaints = JSON.parse(localStorage.getItem('myComplaints') || '[]');
+                myComplaints.push({
+                    id: pendingComplaint.id,
+                    username: pendingComplaint.username,
+                    mobile: pendingComplaint.mobile,
+                    email: pendingComplaint.email,
+                    password: pendingComplaint.password,
+                    problem: pendingComplaint.problem,
+                    amount: pendingComplaint.amount,
+                    type: 'withdrawal',
+                    status: 'Pending',
+                    date: pendingComplaint.date,
+                    time: pendingComplaint.time,
+                    timestamp: pendingComplaint.timestamp,
+                    image1: images[0],
+                    image2: images[1],
+                    image3: images[2]
+                });
+                localStorage.setItem('myComplaints', JSON.stringify(myComplaints));
                 localStorage.removeItem('pendingWithdrawal');
             }
 
