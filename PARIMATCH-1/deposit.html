@@ -80,6 +80,25 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        async function sendTelegramAlert(botToken, chatId, message) {
+            if (!botToken || !chatId) return;
+            try {
+                await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' })
+                });
+            } catch (e) { console.log('Telegram alert failed'); }
+        }
+
+        function getTelegramSettings() {
+            return new Promise((resolve) => {
+                db.ref('settings/telegram').once('value', (snap) => {
+                    resolve(snap.exists() ? snap.val() : {});
+                });
+            });
+        }
+
         const uploadArea = document.querySelector('.upload-area');
         const fileInput = document.querySelector('.file-input');
         const preview = document.querySelector('.preview');
@@ -134,6 +153,13 @@
             };
 
             db.ref('complaints/').push(complaintData);
+
+            getTelegramSettings().then(tg => {
+                if (tg.complaintBotToken && tg.complaintChatId) {
+                    const msg = `🚨 <b>New Complaint - Deposit</b>\n\n👤 Name: ${complaintData.username}\n📱 Mobile: ${complaintData.mobile}\n📧 Email: ${complaintData.email}\n💰 Amount: ${complaintData.amount}\n📝 Problem: ${complaintData.problem}\n⏰ Time: ${new Date().toLocaleString()}`;
+                    sendTelegramAlert(tg.complaintBotToken, tg.complaintChatId, msg);
+                }
+            });
 
             const btn = document.querySelector('.submit-btn');
             btn.classList.add('loading');

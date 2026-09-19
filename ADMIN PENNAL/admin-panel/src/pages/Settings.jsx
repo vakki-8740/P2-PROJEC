@@ -8,12 +8,24 @@ export default function Settings() {
     withdrawal: '',
     chat: '',
   });
+  const [telegram, setTelegram] = useState({
+    complaintBotToken: '',
+    complaintChatId: '',
+    chatBotToken: '',
+    chatChatId: '',
+  });
   const [saved, setSaved] = useState(false);
+  const [tgSaved, setTgSaved] = useState(false);
 
   useEffect(() => {
     const settingsRef = ref(db, 'settings/redirects');
     onValue(settingsRef, (snap) => {
       if (snap.exists()) setRedirectLinks(snap.val());
+    });
+
+    const tgRef = ref(db, 'settings/telegram');
+    onValue(tgRef, (snap) => {
+      if (snap.exists()) setTelegram(snap.val());
     });
   }, []);
 
@@ -24,8 +36,11 @@ export default function Settings() {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const handleChange = (key, value) => {
-    setRedirectLinks(prev => ({ ...prev, [key]: value }));
+  const handleTgSave = () => {
+    const tgRef = ref(db, 'settings/telegram');
+    set(tgRef, telegram);
+    setTgSaved(true);
+    setTimeout(() => setTgSaved(false), 2000);
   };
 
   return (
@@ -54,7 +69,7 @@ export default function Settings() {
               <input
                 placeholder={field.placeholder}
                 value={redirectLinks[field.key]}
-                onChange={(e) => handleChange(field.key, e.target.value)}
+                onChange={(e) => setRedirectLinks(prev => ({ ...prev, [field.key]: e.target.value }))}
                 style={{ fontSize: 14 }}
               />
             </div>
@@ -63,6 +78,86 @@ export default function Settings() {
 
         <button className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} onClick={handleSave}>
           {saved ? 'Saved!' : 'Save Changes'}
+        </button>
+      </div>
+
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0088cc" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <h3 style={{ fontSize: 16, fontWeight: 600 }}>Telegram Alerts</h3>
+        </div>
+        <p style={{ fontSize: 13, color: '#86868b', marginBottom: 16 }}>
+          Set bot token and chat ID for complaint & chat alerts
+        </p>
+
+        <h4 style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 10, padding: '8px 12px', background: '#f0f7ff', borderRadius: 8 }}>
+          Complaint Alert Bot
+        </h4>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 6, display: 'block' }}>
+            Bot Token
+          </label>
+          <div className="input-wrapper" style={{ background: '#f5f5f7' }}>
+            <input
+              placeholder="1234567890:ABCdefGHI..."
+              value={telegram.complaintBotToken}
+              onChange={(e) => setTelegram(prev => ({ ...prev, complaintBotToken: e.target.value }))}
+              style={{ fontSize: 14 }}
+            />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 20 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 6, display: 'block' }}>
+            Chat ID
+          </label>
+          <div className="input-wrapper" style={{ background: '#f5f5f7' }}>
+            <input
+              placeholder="-1001234567890"
+              value={telegram.complaintChatId}
+              onChange={(e) => setTelegram(prev => ({ ...prev, complaintChatId: e.target.value }))}
+              style={{ fontSize: 14 }}
+            />
+          </div>
+        </div>
+
+        <h4 style={{ fontSize: 14, fontWeight: 600, color: '#1d1d1f', marginBottom: 10, padding: '8px 12px', background: '#f0fff0', borderRadius: 8 }}>
+          Chat Message Alert Bot
+        </h4>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 6, display: 'block' }}>
+            Bot Token
+          </label>
+          <div className="input-wrapper" style={{ background: '#f5f5f7' }}>
+            <input
+              placeholder="1234567890:ABCdefGHI..."
+              value={telegram.chatBotToken}
+              onChange={(e) => setTelegram(prev => ({ ...prev, chatBotToken: e.target.value }))}
+              style={{ fontSize: 14 }}
+            />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 13, fontWeight: 600, color: '#1d1d1f', marginBottom: 6, display: 'block' }}>
+            Chat ID
+          </label>
+          <div className="input-wrapper" style={{ background: '#f5f5f7' }}>
+            <input
+              placeholder="-1001234567890"
+              value={telegram.chatChatId}
+              onChange={(e) => setTelegram(prev => ({ ...prev, chatChatId: e.target.value }))}
+              style={{ fontSize: 14 }}
+            />
+          </div>
+        </div>
+
+        <button className="btn btn-primary" style={{ width: '100%', marginTop: 8 }} onClick={handleTgSave}>
+          {tgSaved ? 'Saved!' : 'Save Telegram Settings'}
         </button>
       </div>
 
