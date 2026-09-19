@@ -9,6 +9,7 @@ import UserDetail from './pages/UserDetail';
 import ChatPanel from './pages/ChatPanel';
 import Settings from './pages/Settings';
 import Sidebar from './components/Sidebar';
+import InstallButton from './components/InstallButton';
 import './App.css';
 
 function App() {
@@ -41,7 +42,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/complaints" element={<Complaints />} />
-            <Route path="/complaint/:id" element={<ComplaintDetail />} />
+            <Route path="/complaint/:mobile/:type/:id" element={<ComplaintDetail />} />
             <Route path="/users" element={<Users />} />
             <Route path="/user/:mobile" element={<UserDetail />} />
             <Route path="/chat" element={<ChatPanel />} />
@@ -49,6 +50,7 @@ function App() {
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
+        <InstallButton />
       </div>
     </Router>
   );
