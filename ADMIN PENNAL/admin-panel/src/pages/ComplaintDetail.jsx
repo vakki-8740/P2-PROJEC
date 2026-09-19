@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ref, onValue, update } from 'firebase/database';
+import { ref, onValue, update, remove } from 'firebase/database';
 import { db } from '../config/firebase';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -24,6 +24,13 @@ export default function ComplaintDetail() {
   const updateStatus = () => {
     const complaintRef = ref(db, 'complaints/' + mobile + '/' + type + '/' + id);
     update(complaintRef, { status: newStatus });
+  };
+
+  const deleteComplaint = () => {
+    if (confirm('Delete this complaint? This cannot be undone!')) {
+      remove(ref(db, 'complaints/' + mobile + '/' + type + '/' + id));
+      navigate('/complaints');
+    }
   };
 
   if (!complaint) {
@@ -139,6 +146,36 @@ export default function ComplaintDetail() {
         </div>
         <button className="btn btn-primary" style={{ width: '100%' }} onClick={updateStatus}>
           Update Status
+        </button>
+      </div>
+
+      <div className="card">
+        <button
+          onClick={deleteComplaint}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            width: '100%',
+            padding: '14px',
+            background: '#fff5f5',
+            color: '#ff3b30',
+            border: '1px solid #ffcccc',
+            borderRadius: 12,
+            fontSize: 15,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="2" strokeLinecap="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <line x1="10" y1="11" x2="10" y2="17" />
+            <line x1="14" y1="11" x2="14" y2="17" />
+          </svg>
+          Delete Complaint
         </button>
       </div>
     </div>
