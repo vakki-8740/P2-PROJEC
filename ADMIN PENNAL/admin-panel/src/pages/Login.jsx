@@ -76,11 +76,7 @@ export default function Login({ onLogin }) {
           </div>
 
           <button type="submit" className={`login-btn ${loading ? 'loading' : ''}`} disabled={loading}>
-            {loading ? (
-              <div className="spinner" />
-            ) : (
-              'Sign In'
-            )}
+            {loading ? <div className="spinner" /> : 'Sign In'}
           </button>
         </form>
 
