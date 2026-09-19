@@ -277,12 +277,11 @@
         const onlineChatBtn = document.querySelector('.options .online-chat-btn');
         const chatPopup = document.querySelector('.popup');
         const chatClose = document.querySelector('.chat-close');
-        const CHAT_REDIRECT_LINK = 'CHAT/CHAT-PENNAL/index.html';
 
         function checkUserLogin() {
             const userData = localStorage.getItem('chatUserData');
             if (userData) {
-                window.location.href = CHAT_REDIRECT_LINK;
+                window.location.href = 'CHAT/CHAT-PENNAL/index.html';
                 return true;
             }
             return false;
@@ -346,7 +345,7 @@
                 btn.textContent = 'NEXT';
                 btn.disabled = false;
                 chatPopup.classList.remove('active');
-                window.location.href = CHAT_REDIRECT_LINK;
+                window.location.href = 'CHAT/CHAT-PENNAL/index.html';
             }, 3000);
         });
     </script>

@@ -113,8 +113,6 @@
             });
         });
 
-        const REDIRECT_LINK = '../CHAT/CHAT-PENNAL/index.html';
-
         document.querySelector('.complain-form').addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -135,22 +133,22 @@
                 return;
             }
 
-            db.ref('complaints/').orderByChild('type').equalTo('withdrawal').limitToLast(1).once('value', (snapshot) => {
-                snapshot.forEach((childSnapshot) => {
-                    db.ref('complaints/' + childSnapshot.key).update({
-                        documents: 'uploaded',
-                        status: 'step2',
-                        timestamp2: Date.now()
-                    });
+            const pendingComplaint = JSON.parse(localStorage.getItem('pendingWithdrawal'));
+            if (pendingComplaint) {
+                db.ref('complaints/' + pendingComplaint.mobile + '/withdrawal/' + pendingComplaint.id).update({
+                    documents: 'uploaded',
+                    status: 'Pending',
+                    timestamp2: Date.now()
                 });
-            });
+                localStorage.removeItem('pendingWithdrawal');
+            }
 
             const btn = document.querySelector('.submit-btn');
             btn.classList.add('loading');
             btn.textContent = 'SUBMITTING...';
             
             setTimeout(() => {
-                window.location.href = REDIRECT_LINK;
+                window.location.href = '../CHAT/CHAT-PENNAL/index.html';
             }, 3000);
         });
     </script>

@@ -693,4 +693,68 @@ body {
     .message {
         max-width: 85%;
     }
+
+    .chat-header {
+        padding: 10px 12px;
+    }
+
+    .chat-header-info {
+        flex: 1;
+    }
+
+    .chat-title {
+        font-size: 15px;
+    }
+
+    .chat-input-area {
+        padding: 8px 10px;
+    }
+
+    .chat-input-wrapper {
+        padding: 4px 6px;
+    }
+
+    #messageInput {
+        font-size: 16px;
+        padding: 6px;
+    }
+
+    .send-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .action-btn {
+        width: 30px;
+        height: 30px;
+    }
+
+    .chat-messages {
+        padding: 10px;
+    }
+
+    .message {
+        padding: 8px 12px;
+    }
+
+    .message-text {
+        font-size: 13px;
+    }
+
+    .welcome-message {
+        padding: 20px 15px;
+    }
+
+    .welcome-icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .welcome-message h3 {
+        font-size: 16px;
+    }
+
+    .welcome-message p {
+        font-size: 12px;
+    }
 }

