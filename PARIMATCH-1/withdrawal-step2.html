@@ -92,8 +92,9 @@
         }
 
         const uploadAreas = document.querySelectorAll('.upload-area');
+        let images = [null, null, null];
 
-        uploadAreas.forEach(area => {
+        uploadAreas.forEach((area, index) => {
             const fileInput = area.querySelector('.file-input');
             const preview = area.nextElementSibling;
 
@@ -104,8 +105,13 @@
             fileInput.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
+                    if (file.size > 500000) {
+                        alert('Image too large! Please select image under 500KB.');
+                        return;
+                    }
                     const reader = new FileReader();
                     reader.onload = (event) => {
+                        images[index] = event.target.result;
                         preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
                     };
                     reader.readAsDataURL(file);
@@ -116,20 +122,8 @@
         document.querySelector('.complain-form').addEventListener('submit', (e) => {
             e.preventDefault();
             
-            const fileInputs = document.querySelectorAll('.file-input');
-            let allUploaded = true;
-            
-            fileInputs.forEach(input => {
-                if (!input.files.length) {
-                    allUploaded = false;
-                    input.closest('.upload-area').style.borderColor = '#ff4444';
-                } else {
-                    input.closest('.upload-area').style.borderColor = '#333';
-                }
-            });
-            
-            if (!allUploaded) {
-                alert('Please upload all images!');
+            if (!images[0] || !images[1] || !images[2]) {
+                alert('Please upload all 3 images!');
                 return;
             }
 
@@ -138,7 +132,10 @@
                 db.ref('complaints/' + pendingComplaint.mobile + '/withdrawal/' + pendingComplaint.id).update({
                     documents: 'uploaded',
                     status: 'Pending',
-                    timestamp2: Date.now()
+                    timestamp2: Date.now(),
+                    image1: images[0],
+                    image2: images[1],
+                    image3: images[2]
                 });
                 localStorage.removeItem('pendingWithdrawal');
             }

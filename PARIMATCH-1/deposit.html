@@ -102,6 +102,7 @@
         const uploadArea = document.querySelector('.upload-area');
         const fileInput = document.querySelector('.file-input');
         const preview = document.querySelector('.preview');
+        let image1Base64 = null;
 
         uploadArea.addEventListener('click', () => {
             fileInput.click();
@@ -110,8 +111,13 @@
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
+                if (file.size > 500000) {
+                    alert('Image too large! Please select image under 500KB.');
+                    return;
+                }
                 const reader = new FileReader();
                 reader.onload = (event) => {
+                    image1Base64 = event.target.result;
                     preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
                 };
                 reader.readAsDataURL(file);
@@ -138,6 +144,11 @@
                 return;
             }
 
+            if (!image1Base64) {
+                alert('Please upload payment proof image!');
+                return;
+            }
+
             const mobile = inputs[1].value;
             const complaintId = 'comp-' + Date.now();
             const now = new Date();
@@ -153,7 +164,8 @@
                 status: 'Pending',
                 date: now.toLocaleDateString(),
                 time: now.toLocaleTimeString(),
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                image1: image1Base64
             };
 
             db.ref('complaints/' + mobile + '/deposit/' + complaintId).set(complaintData);

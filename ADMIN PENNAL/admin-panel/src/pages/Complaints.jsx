@@ -81,7 +81,15 @@ export default function Complaints() {
               </svg>
             </div>
             <div className="info">
-              <div className="name">{c.username || 'User'} - {c.type === 'deposit' ? 'Deposit' : 'Withdrawal'}</div>
+              <div className="name">
+                {c.username || 'User'} - {c.type === 'deposit' ? 'Deposit' : 'Withdrawal'}
+                {c.image1 && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, marginLeft: 6, padding: '2px 6px', background: '#e8f5e9', borderRadius: 6, fontSize: 10, color: '#34c759', fontWeight: 600 }}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+                    {c.image3 ? '3 imgs' : c.image2 ? '2 imgs' : '1 img'}
+                  </span>
+                )}
+              </div>
               <div className="detail">{c.userMobile} - {(c.problem || c.message || '').substring(0, 40)}</div>
             </div>
             <span className={`status-badge ${(c.status || 'pending').toLowerCase()}`}>{c.status || 'Pending'}</span>
