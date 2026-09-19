@@ -13,31 +13,35 @@ export default function ChatPanel() {
     onValue(chatsRef, (snap) => {
       const data = snap.val();
       if (data) {
-        const list = Object.entries(data).map(([mobile, messages]) => {
-          const msgs = Object.values(messages);
-          const lastMsg = msgs[msgs.length - 1];
-          return {
+        const list = [];
+        Object.entries(data).forEach(([mobile, messages]) => {
+          if (mobile === '_meta' || !messages || typeof messages !== 'object') return;
+          const meta = messages._meta;
+          const allMsgs = Object.entries(messages).filter(([k]) => k !== '_meta');
+          if (allMsgs.length === 0) return;
+          const lastMsg = allMsgs.sort((a, b) => (b[1]?.timestamp || 0) - (a[1]?.timestamp || 0))[0]?.[1];
+          list.push({
             mobile,
-            lastMessage: lastMsg?.text || '',
-            lastTime: lastMsg?.time || '',
-            sender: lastMsg?.sender || '',
-            totalMessages: msgs.length,
-          };
+            username: meta?.username || 'User',
+            lastMessage: lastMsg?.text || (lastMsg?.type === 'image' ? '📷 Image' : lastMsg?.type === 'file' ? '📄 File' : ''),
+            lastTime: meta?.lastTime || '',
+            totalMessages: allMsgs.length,
+          });
         });
-        setChatUsers(list.reverse());
+        setChatUsers(list.sort((a, b) => (b.totalMessages > 0 ? 1 : 0) - (a.totalMessages > 0 ? 1 : 0)));
       }
     });
   }, []);
 
   const filtered = chatUsers.filter(c =>
-    search === '' || c.mobile.includes(search)
+    search === '' || c.username.toLowerCase().includes(search.toLowerCase()) || c.mobile.includes(search)
   );
 
   return (
     <div>
       <div className="page-header">
         <h1>Chat Panel</h1>
-        <p>All user conversations</p>
+        <p>All user conversations ({chatUsers.length})</p>
       </div>
 
       <div className="search-bar">
@@ -45,7 +49,7 @@ export default function ChatPanel() {
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input placeholder="Search by mobile..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input placeholder="Search by name or mobile..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       {filtered.length === 0 ? (
@@ -58,15 +62,13 @@ export default function ChatPanel() {
         </div>
       ) : (
         filtered.map((c, i) => (
-          <div className="list-item" key={i} onClick={() => navigate(`/user/${c.mobile}`)}>
+          <div className="list-item" key={i} onClick={() => navigate('/chat/' + c.mobile)}>
             <div className="avatar" style={{ background: '#e8f5e9' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
+              <span style={{ fontSize: 18, fontWeight: 600, color: '#34c759' }}>{c.username.charAt(0).toUpperCase()}</span>
             </div>
             <div className="info">
-              <div className="name">{c.mobile}</div>
-              <div className="detail">{(c.lastMessage).substring(0, 40)}</div>
+              <div className="name">{c.username}</div>
+              <div className="detail">{c.mobile} - {(c.lastMessage).substring(0, 35)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>
               <div style={{ fontSize: 11, color: '#86868b', marginBottom: 4 }}>{c.lastTime}</div>

@@ -391,12 +391,23 @@
                     msgData.replyTo = replyTo.text;
                 }
                 db.ref('chats/' + chatId + '/' + msgId).set(msgData);
+
+                if (currentUser) {
+                    db.ref('chats/' + chatId + '/_meta').set({
+                        username: currentUser.username || currentUser.name || 'User',
+                        mobile: chatId,
+                        lastMessage: text,
+                        lastTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        lastTimestamp: Date.now()
+                    });
+                }
+
                 createMessage(text, 'user', true, msgId);
                 simulateAutoReply();
 
                 getTelegramSettings().then(tg => {
                     if (tg.chatBotToken && tg.chatChatId) {
-                        const userName = currentUser ? currentUser.name || currentUser.mobile : 'Unknown';
+                        const userName = currentUser ? currentUser.name || currentUser.username || currentUser.mobile : 'Unknown';
                         const msg = `💬 <b>New Chat Message</b>\n\n👤 User: ${userName}\n📱 Mobile: ${chatId}\n📝 Message: ${text}\n⏰ Time: ${new Date().toLocaleString()}`;
                         sendTelegramAlert(tg.chatBotToken, tg.chatChatId, msg);
                     }
@@ -444,6 +455,15 @@
                         type: 'image',
                         timestamp: Date.now()
                     });
+                    if (currentUser) {
+                        db.ref('chats/' + chatId + '/_meta').set({
+                            username: currentUser.username || currentUser.name || 'User',
+                            mobile: chatId,
+                            lastMessage: '📷 Image',
+                            lastTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                            lastTimestamp: Date.now()
+                        });
+                    }
                     createImageMessage(event.target.result, 'user', msgId);
                 };
                 reader.readAsDataURL(file);

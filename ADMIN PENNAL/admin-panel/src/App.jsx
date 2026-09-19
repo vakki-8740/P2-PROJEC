@@ -7,6 +7,7 @@ import ComplaintDetail from './pages/ComplaintDetail';
 import Users from './pages/Users';
 import UserDetail from './pages/UserDetail';
 import ChatPanel from './pages/ChatPanel';
+import ChatDetail from './pages/ChatDetail';
 import Settings from './pages/Settings';
 import Sidebar from './components/Sidebar';
 import InstallButton from './components/InstallButton';
@@ -46,6 +47,7 @@ function App() {
             <Route path="/users" element={<Users />} />
             <Route path="/user/:mobile" element={<UserDetail />} />
             <Route path="/chat" element={<ChatPanel />} />
+            <Route path="/chat/:mobile" element={<ChatDetail />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
