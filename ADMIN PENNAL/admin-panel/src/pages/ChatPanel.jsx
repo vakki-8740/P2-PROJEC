@@ -38,6 +38,8 @@ export default function ChatPanel() {
             lastMessage: lastMsg?.text || (lastMsg?.type === 'image' ? '📷 Image' : lastMsg?.type === 'file' ? '📄 File' : ''),
             lastTime: meta?.lastTime || '',
             totalMessages: allMsgs.length,
+            userOnline: meta?.userOnline === true,
+            lastSeen: meta?.lastSeen || 0,
           });
         });
         setChatUsers(list.sort((a, b) => (b.totalMessages > 0 ? 1 : 0) - (a.totalMessages > 0 ? 1 : 0)));
@@ -85,11 +87,17 @@ export default function ChatPanel() {
       ) : (
         filtered.map((c, i) => (
           <div className="list-item" key={i} onClick={() => navigate('/chat/' + c.mobile)}>
-            <div className="avatar" style={{ background: '#e8f5e9' }}>
+            <div className="avatar" style={{ background: '#e8f5e9', position: 'relative' }}>
               <span style={{ fontSize: 18, fontWeight: 600, color: '#34c759' }}>{c.username.charAt(0).toUpperCase()}</span>
+              <span style={{ position: 'absolute', bottom: -2, right: -2, width: 12, height: 12, borderRadius: '50%', background: c.userOnline ? '#34c759' : '#ff3b30', border: '2px solid #fff' }}></span>
             </div>
             <div className="info">
-              <div className="name">{c.username}</div>
+              <div className="name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {c.username}
+                <span style={{ fontSize: 10, color: c.userOnline ? '#34c759' : '#86868b', fontWeight: 500 }}>
+                  {c.userOnline ? 'Online' : 'Offline'}
+                </span>
+              </div>
               <div className="detail">{c.mobile} - {(c.lastMessage).substring(0, 35)}</div>
             </div>
             <div style={{ textAlign: 'right' }}>

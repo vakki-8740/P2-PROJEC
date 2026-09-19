@@ -229,14 +229,6 @@
 
         let welcomeSent = localStorage.getItem('welcomeSent_' + chatId) || false;
 
-        const autoReplies = [
-            "Thank you for reaching out! Please wait while we connect you with a support agent.",
-            "Hi there! Our team will be with you shortly. Please hold on.",
-            "Thanks for your patience! A support member will assist you soon.",
-            "Welcome! We're currently connecting you with our support team. Please wait.",
-            "Hello! Your query is important to us. Please wait for a support agent to connect."
-        ];
-
         function sendWelcomeMessage() {
             if (welcomeSent) return;
             const welcomeText = "Hello! 👋 Welcome to Parimatch Help Center! 🎉\n\nWe're glad you're here! 🙏\nHow can we assist you today? 💬\n\nFeel free to share your query and our team will help you ASAP! ⚡";
@@ -250,6 +242,15 @@
             localStorage.setItem('welcomeSent_' + chatId, 'true');
         }
 
+        if (currentUser) {
+            db.ref('chats/' + chatId + '/_meta/userOnline').set(true);
+            db.ref('chats/' + chatId + '/_meta/lastSeen').set(Date.now());
+            window.addEventListener('beforeunload', () => {
+                db.ref('chats/' + chatId + '/_meta/userOnline').set(false);
+                db.ref('chats/' + chatId + '/_meta/lastSeen').set(Date.now());
+            });
+        }
+
         function getCurrentTime() {
             const now = new Date();
             return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -258,10 +259,6 @@
         function getCurrentDate() {
             const now = new Date();
             return now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-        }
-
-        function getRandomReply() {
-            return autoReplies[Math.floor(Math.random() * autoReplies.length)];
         }
 
         function createMessage(text, type = 'user', isAnimation = true, msgId = null) {
@@ -453,8 +450,6 @@
                     });
                 }
 
-                simulateAutoReply();
-
                 getTelegramSettings().then(tg => {
                     if (tg.chatBotToken && tg.chatChatId) {
                         const userName = currentUser ? currentUser.name || currentUser.username || currentUser.mobile : 'Unknown';
@@ -465,23 +460,6 @@
             }
 
             messageInput.value = '';
-        }
-
-        function simulateAutoReply() {
-            if (!isAdminOnline) {
-                showTyping();
-                const delay = 1500 + Math.random() * 2000;
-                setTimeout(() => {
-                    hideTyping();
-                    const replyText = getRandomReply();
-                    const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-                    db.ref('chats/' + chatId + '/' + msgId).set({
-                        text: replyText,
-                        type: 'support',
-                        timestamp: Date.now()
-                    });
-                }, delay);
-            }
         }
 
         messageInput.addEventListener('keypress', (e) => {

@@ -139,7 +139,13 @@ export default function ChatDetail() {
           <span style={{ fontSize: 18, fontWeight: 600, color: '#34c759' }}>{meta?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f' }}>{meta?.username || 'User'}</div>
+          <div style={{ fontSize: 16, fontWeight: 600, color: '#1d1d1f', display: 'flex', alignItems: 'center', gap: 6 }}>
+            {meta?.username || 'User'}
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: meta?.userOnline ? '#34c759' : '#ff3b30', display: 'inline-block' }}></span>
+            <span style={{ fontSize: 11, fontWeight: 400, color: meta?.userOnline ? '#34c759' : '#86868b' }}>
+              {meta?.userOnline ? 'Online' : 'Offline'}
+            </span>
+          </div>
           <div style={{ fontSize: 12, color: '#86868b' }}>{mobile}</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
