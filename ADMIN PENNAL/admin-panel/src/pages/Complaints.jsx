@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { ref, onValue } from 'firebase/database';
 import { db } from '../config/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -15,21 +15,27 @@ export default function Complaints() {
       const data = snap.val();
       if (data) {
         const all = [];
-        Object.entries(data).forEach(([userMobile, types]) => {
-          Object.entries(types).forEach(([type, entries]) => {
-            Object.entries(entries).forEach(([id, entry]) => {
-              all.push({ id, userMobile, type, ...entry });
+        Object.entries(data).forEach(([mobile, types]) => {
+          if (typeof types === 'object') {
+            Object.entries(types).forEach(([type, entries]) => {
+              if (typeof entries === 'object') {
+                Object.entries(entries).forEach(([id, entry]) => {
+                  if (entry && entry.timestamp) {
+                    all.push({ id, userMobile: mobile, type, ...entry });
+                  }
+                });
+              }
             });
-          });
+          }
         });
-        setComplaints(all.reverse());
+        setComplaints(all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)));
       }
     });
   }, []);
 
   const filtered = complaints.filter(c => {
     const matchFilter = filter === 'all' || c.type === filter || (c.status || 'pending').toLowerCase() === filter;
-    const matchSearch = search === '' || c.userMobile.includes(search) || (c.message || '').toLowerCase().includes(search.toLowerCase());
+    const matchSearch = search === '' || c.userMobile.includes(search) || (c.message || '').toLowerCase().includes(search.toLowerCase()) || (c.username || '').toLowerCase().includes(search.toLowerCase());
     return matchFilter && matchSearch;
   });
 
@@ -37,7 +43,7 @@ export default function Complaints() {
     <div>
       <div className="page-header">
         <h1>Complaints</h1>
-        <p>All user complaints</p>
+        <p>All user complaints ({complaints.length})</p>
       </div>
 
       <div className="search-bar">
@@ -45,7 +51,7 @@ export default function Complaints() {
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
-        <input placeholder="Search complaints..." value={search} onChange={(e) => setSearch(e.target.value)} />
+        <input placeholder="Search by name or mobile..." value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
 
       <div className="tab-bar">
@@ -67,7 +73,7 @@ export default function Complaints() {
         </div>
       ) : (
         filtered.map((c, i) => (
-          <div className="list-item" key={i} onClick={() => navigate(`/complaint/${c.userMobile}/${c.type}/${c.id}`)}>
+          <div className="list-item" key={i} onClick={() => navigate('/complaint/' + c.userMobile + '/' + c.type + '/' + c.id)}>
             <div className="avatar">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#86868b" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -75,8 +81,8 @@ export default function Complaints() {
               </svg>
             </div>
             <div className="info">
-              <div className="name">{c.type === 'deposit' ? 'Deposit Issue' : 'Withdrawal Issue'}</div>
-              <div className="detail">{c.userMobile} - {(c.message || '').substring(0, 40)}</div>
+              <div className="name">{c.username || 'User'} - {c.type === 'deposit' ? 'Deposit' : 'Withdrawal'}</div>
+              <div className="detail">{c.userMobile} - {(c.problem || c.message || '').substring(0, 40)}</div>
             </div>
             <span className={`status-badge ${(c.status || 'pending').toLowerCase()}`}>{c.status || 'Pending'}</span>
           </div>
