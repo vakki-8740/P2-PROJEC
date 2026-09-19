@@ -70,8 +70,8 @@
                 <div class="welcome-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 </div>
-                <h3>Welcome to Help Center</h3>
-                <p>How can we help you today?</p>
+                <h3>Welcome to Help Center! 👋</h3>
+                <p>We're here to help you 24/7 ✨</p>
             </div>
         </div>
 
@@ -117,6 +117,17 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             Delete
         </button>
+    </div>
+
+    <div class="message-popup-overlay" id="messagePopup" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;padding:20px;">
+        <div style="background:#1a1a1a;border-radius:16px;max-width:400px;width:100%;overflow:hidden;border:1px solid #333;">
+            <div style="padding:16px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:#ffff00;font-weight:700;font-size:16px;">Message Details</span>
+                <button onclick="closeMessagePopup()" style="background:none;border:none;color:#aaa;font-size:20px;cursor:pointer;">&times;</button>
+            </div>
+            <div style="padding:16px;" id="popupContent"></div>
+            <div style="padding:12px 16px;border-top:1px solid #333;display:flex;gap:8px;flex-wrap:wrap;" id="popupActions"></div>
+        </div>
     </div>
 
     <script>
@@ -205,6 +216,7 @@
         let replyTo = null;
         let editingMessage = null;
         let messageCount = 0;
+        let welcomeSent = localStorage.getItem('welcomeSent_' + chatId) || false;
 
         const autoReplies = [
             "Thank you for reaching out! Please wait while we connect you with a support agent.",
@@ -213,6 +225,20 @@
             "Welcome! We're currently connecting you with our support team. Please wait.",
             "Hello! Your query is important to us. Please wait for a support agent to connect."
         ];
+
+        function sendWelcomeMessage() {
+            if (welcomeSent) return;
+            const welcomeText = "Hello! 👋 Welcome to Parimatch Help Center! 🎉\n\nWe're glad you're here! 🙏\nHow can we assist you today? 💬\n\nFeel free to share your query and our team will help you ASAP! ⚡";
+            const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            db.ref('chats/' + chatId + '/' + msgId).set({
+                text: welcomeText,
+                type: 'support',
+                timestamp: Date.now()
+            });
+            createMessage(welcomeText, 'support', true, msgId);
+            welcomeSent = true;
+            localStorage.setItem('welcomeSent_' + chatId, 'true');
+        }
 
         function getCurrentTime() {
             const now = new Date();
@@ -259,6 +285,12 @@
                 </div>
             `;
 
+            messageDiv.addEventListener('click', (e) => {
+                if (e.target.closest('.message-text') || e.target.closest('.shared-image') || e.target.closest('.file-info')) {
+                    showMessagePopup({ id: msgId, text: text, type: type, url: null, fileName: null, timestamp: Date.now() });
+                }
+            });
+
             messageDiv.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 selectedMessage = { element: messageDiv, type, text, id: msgId };
@@ -293,6 +325,10 @@
                     ${type === 'user' ? '<span class="message-check">&#10003;&#10003;</span>' : ''}
                 </div>
             `;
+
+            messageDiv.addEventListener('click', () => {
+                showMessagePopup({ id: null, text: '', type: 'image', url: imageSrc, fileName: null, timestamp: Date.now() });
+            });
 
             wrapper.appendChild(messageDiv);
             chatMessages.appendChild(wrapper);
@@ -370,7 +406,13 @@
             messageInput.placeholder = `Replying to: ${msg.text.substring(0, 20)}...`;
         }
 
+        let lastSendTime = 0;
+
         function sendMessage() {
+            const now = Date.now();
+            if (now - lastSendTime < 1000) return;
+            lastSendTime = now;
+
             const text = messageInput.value.trim();
             if (!text) return;
 
@@ -497,6 +539,69 @@
             });
         });
 
+        function showMessagePopup(msg) {
+            const popup = document.getElementById('messagePopup');
+            const content = document.getElementById('popupContent');
+            const actions = document.getElementById('popupActions');
+            
+            const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'Unknown';
+            const isUser = msg.type === 'user';
+            const isImage = msg.type === 'image';
+            const isFile = msg.type === 'file';
+            
+            let contentHtml = '';
+            if (isImage) {
+                contentHtml = '<img src="' + msg.url + '" style="width:100%;border-radius:10px;margin-bottom:10px;"><div style="color:#aaa;font-size:13px;">📷 Image Message</div>';
+            } else if (isFile) {
+                contentHtml = '<div style="color:#aaa;font-size:13px;">📄 File: ' + msg.fileName + '</div>';
+            } else {
+                contentHtml = '<div style="color:#fff;font-size:15px;line-height:1.5;word-break:break-word;">' + (msg.text || '') + '</div>';
+            }
+            
+            contentHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #333;"><div style="color:#888;font-size:12px;margin-bottom:4px;">📅 ' + timeStr + '</div><div style="color:#888;font-size:12px;">Type: ' + (isUser ? '👤 You' : isImage ? '📷 Image' : isFile ? '📄 File' : '💬 Support') + '</div></div>';
+            content.innerHTML = contentHtml;
+            
+            let actionsHtml = '<button onclick="popupReply(\'' + (msg.text || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:#007aff;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">↩ Reply</button>';
+            if (isUser && !isImage && !isFile) {
+                actionsHtml += '<button onclick="popupEdit(\'' + msg.id + '\', \'' + (msg.text || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:#ff9500;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">✏ Edit</button>';
+            }
+            actionsHtml += '<button onclick="popupDelete(\'' + msg.id + '\')" style="flex:1;padding:10px;background:#ff3b30;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">🗑 Delete</button>';
+            actions.innerHTML = actionsHtml;
+            
+            popup.style.display = 'flex';
+            popup.currentMsg = msg;
+        }
+        
+        function closeMessagePopup() {
+            document.getElementById('messagePopup').style.display = 'none';
+        }
+        
+        function popupReply(text) {
+            replyTo = { text: text };
+            messageInput.focus();
+            messageInput.placeholder = 'Replying to: ' + text.substring(0, 20) + '...';
+            closeMessagePopup();
+        }
+        
+        function popupEdit(msgId, text) {
+            const newText = prompt('Edit your message:', text);
+            if (newText && newText.trim()) {
+                db.ref('chats/' + chatId + '/' + msgId).update({ text: newText });
+                const el = document.querySelector('[data-msg-id="' + msgId + '"] .message-text');
+                if (el) el.textContent = newText;
+            }
+            closeMessagePopup();
+        }
+        
+        function popupDelete(msgId) {
+            if (confirm('Delete this message?')) {
+                db.ref('chats/' + chatId + '/' + msgId).remove();
+                const el = document.querySelector('[data-msg-id="' + msgId + '"]');
+                if (el) el.parentElement.remove();
+            }
+            closeMessagePopup();
+        }
+
         clearChatBtn.addEventListener('click', () => {
             if (confirm('Clear all messages?')) {
                 db.ref('chats/' + chatId).remove();
@@ -514,6 +619,8 @@
         });
 
         chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        setTimeout(() => { sendWelcomeMessage(); }, 1500);
 
         chatMenuBtn.addEventListener('click', () => {
             chatSidebar.classList.add('active');

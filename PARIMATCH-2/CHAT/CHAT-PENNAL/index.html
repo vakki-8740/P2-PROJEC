@@ -70,8 +70,8 @@
                 <div class="welcome-icon">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                 </div>
-                <h3>Welcome to Help Center</h3>
-                <p>How can we help you today?</p>
+                <h3>Welcome to Help Center! 👋</h3>
+                <p>We're here to help you 24/7 ✨</p>
             </div>
         </div>
 
@@ -205,6 +205,13 @@
             }
         });
 
+        let isAdminOnline = false;
+        let selectedMessage = null;
+        let replyTo = null;
+        let editingMessage = null;
+        let messageCount = 0;
+        let welcomeSent = localStorage.getItem('welcomeSent_' + chatId) || false;
+
         const autoReplies = [
             "Thank you for reaching out! Please wait while we connect you with a support agent.",
             "Hi there! Our team will be with you shortly. Please hold on.",
@@ -212,6 +219,20 @@
             "Welcome! We're currently connecting you with our support team. Please wait.",
             "Hello! Your query is important to us. Please wait for a support agent to connect."
         ];
+
+        function sendWelcomeMessage() {
+            if (welcomeSent) return;
+            const welcomeText = "Hello! 👋 Welcome to Parimatch Help Center! 🎉\n\nWe're glad you're here! 🙏\nHow can we assist you today? 💬\n\nFeel free to share your query and our team will help you ASAP! ⚡";
+            const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            db.ref('chats/' + chatId + '/' + msgId).set({
+                text: welcomeText,
+                type: 'support',
+                timestamp: Date.now()
+            });
+            createMessage(welcomeText, 'support', true, msgId);
+            welcomeSent = true;
+            localStorage.setItem('welcomeSent_' + chatId, 'true');
+        }
 
         function getCurrentTime() {
             const now = new Date();
@@ -254,6 +275,11 @@
                 </div>
             `;
 
+            messageDiv.addEventListener('click', (e) => {
+                if (e.target.closest('.message-text') || e.target.closest('.shared-image') || e.target.closest('.file-info')) {
+                    showMessagePopup({ id: msgId, text: text, type: type, url: null, fileName: null, timestamp: Date.now() });
+                }
+            });
             messageDiv.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 selectedMessage = { element: messageDiv, type, text, id: msgId };
@@ -292,6 +318,9 @@
                 </div>
             `;
 
+            messageDiv.addEventListener('click', () => {
+                showMessagePopup({ id: null, text: '', type: 'image', url: imageSrc, fileName: null, timestamp: Date.now() });
+            });
             wrapper.appendChild(messageDiv);
             chatMessages.appendChild(wrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -371,7 +400,13 @@
             messageInput.placeholder = `Replying to: ${msg.text.substring(0, 20)}...`;
         }
 
+        let lastSendTime = 0;
+
         function sendMessage() {
+            const now = Date.now();
+            if (now - lastSendTime < 1000) return;
+            lastSendTime = now;
+
             const text = messageInput.value.trim();
             if (!text) return;
 
@@ -498,6 +533,48 @@
             });
         });
 
+        function showMessagePopup(msg) {
+            const popup = document.getElementById('messagePopup');
+            const content = document.getElementById('popupContent');
+            const actions = document.getElementById('popupActions');
+            const timeStr = msg.timestamp ? new Date(msg.timestamp).toLocaleString() : 'Unknown';
+            const isUser = msg.type === 'user';
+            const isImage = msg.type === 'image';
+            let contentHtml = '';
+            if (isImage) {
+                contentHtml = '<img src="' + msg.url + '" style="width:100%;border-radius:10px;margin-bottom:10px;"><div style="color:#888;font-size:13px;">Image Message</div>';
+            } else {
+                contentHtml = '<div style="color:#222;font-size:15px;line-height:1.5;word-break:break-word;">' + (msg.text || '') + '</div>';
+            }
+            contentHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;"><div style="color:#888;font-size:12px;">' + timeStr + ' | ' + (isUser ? 'You' : 'Support') + '</div></div>';
+            content.innerHTML = contentHtml;
+            let actionsHtml = '<button onclick="popupReply(\'' + (msg.text || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:#222;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Reply</button>';
+            if (isUser) {
+                actionsHtml += '<button onclick="popupEdit(\'' + msg.id + '\', \'' + (msg.text || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:#ff9500;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Edit</button>';
+            }
+            actionsHtml += '<button onclick="popupDelete(\'' + msg.id + '\')" style="flex:1;padding:10px;background:#ff3b30;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Delete</button>';
+            actions.innerHTML = actionsHtml;
+            popup.style.display = 'flex';
+        }
+        function closeMessagePopup() { document.getElementById('messagePopup').style.display = 'none'; }
+        function popupReply(text) { replyTo = { text: text }; messageInput.focus(); messageInput.placeholder = 'Replying to: ' + text.substring(0, 20) + '...'; closeMessagePopup(); }
+        function popupEdit(msgId, text) {
+            const newText = prompt('Edit your message:', text);
+            if (newText && newText.trim()) {
+                db.ref('chats/' + chatId + '/' + msgId).update({ text: newText });
+                const el = document.querySelector('[data-msg-id="' + msgId + '"] .message-text');
+                if (el) el.textContent = newText;
+            }
+            closeMessagePopup();
+        }
+        function popupDelete(msgId) {
+            if (confirm('Delete this message?')) {
+                db.ref('chats/' + chatId + '/' + msgId).remove();
+                const el = document.querySelector('[data-msg-id="' + msgId + '"]');
+                if (el) el.parentElement.remove();
+            }
+            closeMessagePopup();
+        }
         clearChatBtn.addEventListener('click', () => {
             if (confirm('Clear all messages?')) {
                 db.ref('chats/' + chatId).remove();
@@ -513,6 +590,8 @@
                 messageCount = 0;
             }
         });
+
+        setTimeout(() => { sendWelcomeMessage(); }, 1500);
 
         chatMenuBtn.addEventListener('click', () => {
             chatSidebar.classList.add('active');

@@ -11,6 +11,7 @@ export default function ChatDetail() {
   const [replyTo, setReplyTo] = useState(null);
   const [editingMsg, setEditingMsg] = useState(null);
   const [contextMenu, setContextMenu] = useState(null);
+  const [popupMsg, setPopupMsg] = useState(null);
   const [isBlocked, setIsBlocked] = useState(false);
   const chatEndRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -202,7 +203,7 @@ export default function ChatDetail() {
           return (
             <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', alignItems: isAdmin ? 'flex-end' : 'flex-start' }}
               onContextMenu={(e) => { e.preventDefault(); setContextMenu({ msg, x: e.clientX, y: e.clientY }); }}>
-              <div style={bubbleStyle} onClick={() => setContextMenu({ msg, x: bubbleStyle.alignSelf === 'flex-end' ? window.innerWidth - 150 : 10, y: e => e.clientY || 200 })}>
+              <div style={bubbleStyle} onClick={() => setPopupMsg(msg)}>
                 {msg.replyTo && (
                   <div style={{ padding: '4px 8px', background: 'rgba(0,0,0,0.1)', borderRadius: 8, fontSize: 11, marginBottom: 6, borderLeft: '3px solid rgba(0,0,0,0.2)' }}>
                     {msg.replyTo.substring(0, 50)}...
@@ -277,6 +278,37 @@ export default function ChatDetail() {
           </button>
         </div>
       </div>
+
+      {/* Message Popup Modal */}
+      {popupMsg && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={() => setPopupMsg(null)}>
+          <div style={{ background: '#fff', borderRadius: 16, maxWidth: 400, width: '100%', overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ padding: '16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontWeight: 700, fontSize: 16 }}>Message Details</span>
+              <button onClick={() => setPopupMsg(null)} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', color: '#888' }}>X</button>
+            </div>
+            <div style={{ padding: 16 }}>
+              {popupMsg.type === 'image' ? (
+                <img src={popupMsg.url} alt="Shared" style={{ width: '100%', borderRadius: 10, marginBottom: 10 }} />
+              ) : (
+                <div style={{ fontSize: 15, lineHeight: 1.5, wordBreak: 'break-word', marginBottom: 10 }}>{popupMsg.text}</div>
+              )}
+              <div style={{ fontSize: 12, color: '#888', borderTop: '1px solid #eee', paddingTop: 10 }}>
+                <div>Date: {popupMsg.timestamp ? new Date(popupMsg.timestamp).toLocaleDateString() : 'N/A'}</div>
+                <div>Time: {popupMsg.timestamp ? new Date(popupMsg.timestamp).toLocaleTimeString() : 'N/A'}</div>
+                <div>Type: {popupMsg.sender === 'admin' ? 'Admin' : 'User'}</div>
+              </div>
+            </div>
+            <div style={{ padding: '12px 16px', borderTop: '1px solid #eee', display: 'flex', gap: 8 }}>
+              <button onClick={() => { replyToMessage(popupMsg); setPopupMsg(null); }} style={{ flex: 1, padding: 10, background: '#007aff', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Reply</button>
+              {popupMsg.sender === 'admin' && (
+                <button onClick={() => { editMessage(popupMsg); setPopupMsg(null); }} style={{ flex: 1, padding: 10, background: '#ff9500', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Edit</button>
+              )}
+              <button onClick={() => { deleteMessage(popupMsg); setPopupMsg(null); }} style={{ flex: 1, padding: 10, background: '#ff3b30', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
