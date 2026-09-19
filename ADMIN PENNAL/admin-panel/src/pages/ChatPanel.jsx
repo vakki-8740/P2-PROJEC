@@ -1,12 +1,24 @@
 import { useState, useEffect } from 'react';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, set } from 'firebase/database';
 import { db } from '../config/firebase';
 import { useNavigate } from 'react-router-dom';
 
 export default function ChatPanel() {
   const [chatUsers, setChatUsers] = useState([]);
   const [search, setSearch] = useState('');
+  const [adminOnline, setAdminOnline] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const statusRef = ref(db, 'settings/adminOnline');
+    onValue(statusRef, (snap) => {
+      setAdminOnline(snap.val() === true);
+    });
+  }, []);
+
+  const toggleAdminOnline = () => {
+    set(ref(db, 'settings/adminOnline'), !adminOnline);
+  };
 
   useEffect(() => {
     const chatsRef = ref(db, 'chats');
@@ -39,9 +51,19 @@ export default function ChatPanel() {
 
   return (
     <div>
-      <div className="page-header">
-        <h1>Chat Panel</h1>
-        <p>All user conversations ({chatUsers.length})</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>Chat Panel</h1>
+          <p>All user conversations ({chatUsers.length})</p>
+        </div>
+        <button onClick={toggleAdminOnline} style={{
+          padding: '8px 16px', borderRadius: 20, border: 'none', cursor: 'pointer',
+          background: adminOnline ? '#34c759' : '#ff3b30', color: '#fff', fontWeight: 600, fontSize: 13,
+          display: 'flex', alignItems: 'center', gap: 6
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#fff', display: 'inline-block' }}></span>
+          {adminOnline ? 'Online' : 'Offline'}
+        </button>
       </div>
 
       <div className="search-bar">

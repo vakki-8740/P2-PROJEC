@@ -191,11 +191,32 @@
 
         let chatId = currentUser ? currentUser.mobile : 'guest';
 
+        let isAdminOnline = false;
+        let selectedMessage = null;
+        let replyTo = null;
+        let editingMessage = null;
+        let messageCount = 0;
+        let welcomeSent = localStorage.getItem('welcomeSent_' + chatId) || false;
+
+        db.ref('settings/adminOnline').on('value', (snap) => {
+            isAdminOnline = snap.val() === true;
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.getElementById('chatStatus');
+            if (isAdminOnline) {
+                statusDot.className = 'status-dot online';
+                statusText.innerHTML = '<span class="status-dot online"></span> Online';
+            } else {
+                statusDot.className = 'status-dot offline';
+                statusText.innerHTML = '<span class="status-dot offline"></span> Offline';
+            }
+        });
+
         db.ref('chats/' + chatId).on('value', (snapshot) => {
             const messages = snapshot.val();
             if (messages) {
                 Object.keys(messages).forEach(key => {
                     const msg = messages[key];
+                    if (key === '_meta') return;
                     if (!document.querySelector(`[data-msg-id="${key}"]`)) {
                         if (msg.type === 'user') {
                             createMessage(msg.text, 'user', false, key);
@@ -211,13 +232,6 @@
             }
         });
 
-        let isAdminOnline = false;
-        let selectedMessage = null;
-        let replyTo = null;
-        let editingMessage = null;
-        let messageCount = 0;
-        let welcomeSent = localStorage.getItem('welcomeSent_' + chatId) || false;
-
         const autoReplies = [
             "Thank you for reaching out! Please wait while we connect you with a support agent.",
             "Hi there! Our team will be with you shortly. Please hold on.",
@@ -229,13 +243,12 @@
         function sendWelcomeMessage() {
             if (welcomeSent) return;
             const welcomeText = "Hello! 👋 Welcome to Parimatch Help Center! 🎉\n\nWe're glad you're here! 🙏\nHow can we assist you today? 💬\n\nFeel free to share your query and our team will help you ASAP! ⚡";
-            const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            const msgId = 'msg-welcome-' + Date.now();
             db.ref('chats/' + chatId + '/' + msgId).set({
                 text: welcomeText,
                 type: 'support',
                 timestamp: Date.now()
             });
-            createMessage(welcomeText, 'support', true, msgId);
             welcomeSent = true;
             localStorage.setItem('welcomeSent_' + chatId, 'true');
         }
@@ -470,7 +483,6 @@
                         type: 'support',
                         timestamp: Date.now()
                     });
-                    createMessage(replyText, 'support', true, msgId);
                 }, delay);
             }
         }
