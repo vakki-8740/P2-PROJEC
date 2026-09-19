@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Chat</title>
+    <link rel="icon" type="image/jpeg" href="../../FAVICONS/images.jpg">
+    <link rel="stylesheet" href="chat-style.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <div class="chat-menu-btn" id="chatMenuBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="chat-header-info">
+                    <div class="chat-header-top">
+                        <img src="LOGO/ONLINE-CHAT-removebg-preview.png" alt="Logo" class="chat-logo">
+                        <div class="chat-header-text">
+                            <span class="chat-title">HELP CENTER</span>
+                            <span class="chat-status" id="chatStatus">
+                                <span class="status-dot offline"></span>
+                                Offline
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button class="header-action-btn" id="clearChatBtn" title="Clear Chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-sidebar" id="chatSidebar">
+            <div class="chat-sidebar-header">
+                <span>MENU</span>
+                <button class="sidebar-close" id="sidebarClose">&times;</button>
+            </div>
+            <div class="chat-sidebar-content">
+                <div class="user-info">
+                    <div class="user-avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                    <span class="user-name" id="userName">User</span>
+                </div>
+                <nav class="chat-sidebar-nav">
+                    <a href="../../index.html" class="chat-nav-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        Home
+                    </a>
+                    <button class="chat-nav-item logout-btn" id="logoutBtn">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Logout
+                    </button>
+                </nav>
+            </div>
+        </div>
+        <div class="chat-sidebar-overlay" id="chatSidebarOverlay"></div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <div class="welcome-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <h3>Welcome to Help Center</h3>
+                <p>How can we help you today?</p>
+            </div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <span>Support is typing...</span>
+        </div>
+
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <div class="input-actions-left">
+                    <button class="action-btn" id="imageBtn" title="Send Image">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    </button>
+                    <button class="action-btn" id="fileBtn" title="Send File/PDF">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    </button>
+                </div>
+                <input type="text" id="messageInput" placeholder="Type a message..." autocomplete="off">
+                <button class="send-btn" id="sendBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+            <input type="file" id="imageInput" accept="image/*" hidden>
+            <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
+        </div>
+    </div>
+
+    <div class="context-menu" id="contextMenu">
+        <button class="context-item" data-action="reply">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 17 4 12 9 7"></polyline><path d="M20 18v-2a4 4 0 0 0-4-4H4"></path></svg>
+            Reply
+        </button>
+        <button class="context-item" data-action="edit">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            Edit
+        </button>
+        <button class="context-item delete" data-action="delete">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete
+        </button>
+    </div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAB_nWexO6iW9RGPmfsqXVjhDWpnlSXoU",
+            authDomain: "zenvy-store-43ca0.firebaseapp.com",
+            databaseURL: "https://zenvy-store-43ca0-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "zenvy-store-43ca0",
+            storageBucket: "zenvy-store-43ca0.firebasestorage.app",
+            messagingSenderId: "469849085917",
+            appId: "1:469849085917:web:efe5625260eaa28ab30834"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const chatMessages = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const imageBtn = document.getElementById('imageBtn');
+        const fileBtn = document.getElementById('fileBtn');
+        const imageInput = document.getElementById('imageInput');
+        const fileInput = document.getElementById('fileInput');
+        const typingIndicator = document.getElementById('typingIndicator');
+        const chatStatus = document.getElementById('chatStatus');
+        const contextMenu = document.getElementById('contextMenu');
+        const clearChatBtn = document.getElementById('clearChatBtn');
+        const chatMenuBtn = document.getElementById('chatMenuBtn');
+        const chatSidebar = document.getElementById('chatSidebar');
+        const chatSidebarOverlay = document.getElementById('chatSidebarOverlay');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userName = document.getElementById('userName');
+
+        const userData = localStorage.getItem('chatUserData');
+        let currentUser = null;
+        if (userData) {
+            currentUser = JSON.parse(userData);
+            userName.textContent = currentUser.username;
+        } else {
+            window.location.href = '../../index.html';
+        }
+
+        let chatId = currentUser ? currentUser.mobile : 'guest';
+
+        db.ref('chats/' + chatId).on('value', (snapshot) => {
+            const messages = snapshot.val();
+            if (messages) {
+                Object.keys(messages).forEach(key => {
+                    const msg = messages[key];
+                    if (!document.querySelector(`[data-msg-id="${key}"]`)) {
+                        if (msg.type === 'user') {
+                            createMessage(msg.text, 'user', false, key);
+                        } else if (msg.type === 'support') {
+                            createMessage(msg.text, 'support', false, key);
+                        } else if (msg.type === 'image') {
+                            createImageMessage(msg.url, 'user', key);
+                        } else if (msg.type === 'file') {
+                            createFileMessage(msg.fileName, 'user', key);
+                        }
+                    }
+                });
+            }
+        });
+
+        let isAdminOnline = false;
+        let selectedMessage = null;
+        let replyTo = null;
+        let editingMessage = null;
+        let messageCount = 0;
+
+        const autoReplies = [
+            "Thank you for reaching out! Please wait while we connect you with a support agent.",
+            "Hi there! Our team will be with you shortly. Please hold on.",
+            "Thanks for your patience! A support member will assist you soon.",
+            "Welcome! We're currently connecting you with our support team. Please wait.",
+            "Hello! Your query is important to us. Please wait for a support agent to connect."
+        ];
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getCurrentDate() {
+            const now = new Date();
+            return now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function getRandomReply() {
+            return autoReplies[Math.floor(Math.random() * autoReplies.length)];
+        }
+
+        function formatDateSeparator() {
+            return `<div class="date-separator"><span>${getCurrentDate()}</span></div>`;
+        }
+
+        function createMessage(text, type = 'user', isAnimation = true, msgId = null) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${type}-wrapper`;
+            if (isAnimation) wrapper.style.animationDelay = `${messageCount * 0.8}s`;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.setAttribute('data-time', getCurrentTime());
+
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            messageDiv.setAttribute('data-msg-id', msgId);
+            messageDiv.setAttribute('data-id', msgId);
+
+            let replyHTML = '';
+            if (replyTo) {
+                replyHTML = `<div class="reply-preview"><span>Replying to: ${replyTo.text.substring(0, 30)}...</span></div>`;
+            }
+
+            messageDiv.innerHTML = `
+                ${replyHTML}
+                <div class="message-text">${text}</div>
+                <div class="message-meta">
+                    <span class="message-time">${getCurrentTime()}</span>
+                    ${type === 'user' ? '<span class="message-check">&#10003;&#10003;</span>' : ''}
+                </div>
+            `;
+
+            messageDiv.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                selectedMessage = { element: messageDiv, type, text, id: msgId };
+                showContextMenu(e.clientX, e.clientY);
+            });
+
+            messageDiv.addEventListener('dblclick', () => {
+                selectedMessage = { element: messageDiv, type, text, id: msgId };
+                showContextMenu(messageDiv.getBoundingClientRect().right - 100, messageDiv.getBoundingClientRect().top);
+            });
+
+            wrapper.appendChild(messageDiv);
+            chatMessages.appendChild(wrapper);
+
+            replyTo = null;
+            messageCount++;
+
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function createImageMessage(imageSrc, type = 'user') {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${type}-wrapper`;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type} image-message`;
+
+            messageDiv.innerHTML = `
+                <img src="${imageSrc}" alt="Shared image" class="shared-image">
+                <div class="message-meta">
+                    <span class="message-time">${getCurrentTime()}</span>
+                    ${type === 'user' ? '<span class="message-check">&#10003;&#10003;</span>' : ''}
+                </div>
+            `;
+
+            wrapper.appendChild(messageDiv);
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function createFileMessage(fileName, type = 'user') {
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper ${type}-wrapper`;
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type} file-message`;
+
+            messageDiv.innerHTML = `
+                <div class="file-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                </div>
+                <div class="file-info">
+                    <span class="file-name">${fileName}</span>
+                </div>
+                <div class="message-meta">
+                    <span class="message-time">${getCurrentTime()}</span>
+                    ${type === 'user' ? '<span class="message-check">&#10003;&#10003;</span>' : ''}
+                </div>
+            `;
+
+            wrapper.appendChild(messageDiv);
+            chatMessages.appendChild(wrapper);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTyping() {
+            typingIndicator.classList.add('active');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTyping() {
+            typingIndicator.classList.remove('active');
+        }
+
+        function showContextMenu(x, y) {
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            contextMenu.classList.add('active');
+
+            const editBtn = contextMenu.querySelector('[data-action="edit"]');
+            if (selectedMessage.type === 'support') {
+                editBtn.style.display = 'none';
+            } else {
+                editBtn.style.display = 'flex';
+            }
+        }
+
+        function hideContextMenu() {
+            contextMenu.classList.remove('active');
+            selectedMessage = null;
+        }
+
+        function deleteMessage(msg) {
+            db.ref('chats/' + chatId + '/' + msg.id).remove();
+            msg.element.parentElement.remove();
+        }
+
+        function editMessage(msg) {
+            const newText = prompt('Edit your message:', msg.text);
+            if (newText && newText.trim()) {
+                msg.element.querySelector('.message-text').textContent = newText;
+                db.ref('chats/' + chatId + '/' + msg.id).update({ text: newText });
+            }
+        }
+
+        function replyToMessage(msg) {
+            replyTo = { text: msg.text };
+            messageInput.focus();
+            messageInput.placeholder = `Replying to: ${msg.text.substring(0, 20)}...`;
+        }
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            if (editingMessage) {
+                editingMessage.element.querySelector('.message-text').textContent = text;
+                db.ref('chats/' + chatId + '/' + editingMessage.id).update({ text: text });
+                editingMessage = null;
+                messageInput.placeholder = 'Type a message...';
+            } else {
+                const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                const msgData = {
+                    text: text,
+                    type: 'user',
+                    timestamp: Date.now()
+                };
+                if (replyTo) {
+                    msgData.replyTo = replyTo.text;
+                }
+                db.ref('chats/' + chatId + '/' + msgId).set(msgData);
+                createMessage(text, 'user', true, msgId);
+                simulateAutoReply();
+            }
+
+            messageInput.value = '';
+        }
+
+        function simulateAutoReply() {
+            if (!isAdminOnline) {
+                showTyping();
+                const delay = 1500 + Math.random() * 2000;
+                setTimeout(() => {
+                    hideTyping();
+                    const replyText = getRandomReply();
+                    const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    db.ref('chats/' + chatId + '/' + msgId).set({
+                        text: replyText,
+                        type: 'support',
+                        timestamp: Date.now()
+                    });
+                    createMessage(replyText, 'support', true, msgId);
+                }, delay);
+            }
+        }
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        sendBtn.addEventListener('click', sendMessage);
+
+        imageBtn.addEventListener('click', () => imageInput.click());
+        fileBtn.addEventListener('click', () => fileInput.click());
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    db.ref('chats/' + chatId + '/' + msgId).set({
+                        url: event.target.result,
+                        type: 'image',
+                        timestamp: Date.now()
+                    });
+                    createImageMessage(event.target.result, 'user', msgId);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                db.ref('chats/' + chatId + '/' + msgId).set({
+                    fileName: file.name,
+                    type: 'file',
+                    timestamp: Date.now()
+                });
+                createFileMessage(file.name, 'user', msgId);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!contextMenu.contains(e.target)) hideContextMenu();
+        });
+
+        contextMenu.querySelectorAll('.context-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (!selectedMessage) return;
+                const action = item.getAttribute('data-action');
+                if (action === 'delete') deleteMessage(selectedMessage);
+                if (action === 'edit') editMessage(selectedMessage);
+                if (action === 'reply') replyToMessage(selectedMessage);
+                hideContextMenu();
+            });
+        });
+
+        clearChatBtn.addEventListener('click', () => {
+            if (confirm('Clear all messages?')) {
+                db.ref('chats/' + chatId).remove();
+                chatMessages.innerHTML = `
+                    <div class="welcome-message">
+                        <div class="welcome-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        <h3>Welcome to Help Center</h3>
+                        <p>How can we help you today?</p>
+                    </div>
+                `;
+                messageCount = 0;
+            }
+        });
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        chatMenuBtn.addEventListener('click', () => {
+            chatSidebar.classList.add('active');
+            chatSidebarOverlay.classList.add('active');
+        });
+
+        function closeSidebar() {
+            chatSidebar.classList.remove('active');
+            chatSidebarOverlay.classList.remove('active');
+        }
+
+        sidebarClose.addEventListener('click', closeSidebar);
+        chatSidebarOverlay.addEventListener('click', closeSidebar);
+
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('chatUserData');
+                window.location.href = '../../index.html';
+            }
+        });
+    </script>
+
+</body>
+</html>

