@@ -62,7 +62,7 @@ export default function ChatDetail() {
       msgData.replyId = replyTo.id;
     }
     push(ref(db, 'chats/' + mobile), msgData);
-    push(ref(db, 'chats/' + mobile + '/_meta'), {
+    update(ref(db, 'chats/' + mobile + '/_meta'), {
       lastMessage: text,
       lastTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
       lastTimestamp: Date.now()
@@ -86,7 +86,7 @@ export default function ChatDetail() {
         sender: 'admin',
         timestamp: Date.now()
       });
-      push(ref(db, 'chats/' + mobile + '/_meta'), {
+      update(ref(db, 'chats/' + mobile + '/_meta'), {
         lastMessage: '📷 Image',
         lastTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
         lastTimestamp: Date.now()

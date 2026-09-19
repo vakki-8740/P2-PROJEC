@@ -215,10 +215,10 @@
                     if (!document.querySelector(`[data-msg-id="${key}"]`)) {
                         if (msg.type === 'user') {
                             createMessage(msg.text, 'user', false, key);
-                        } else if (msg.type === 'support') {
+                        } else if (msg.type === 'support' || msg.type === 'admin') {
                             createMessage(msg.text, 'support', false, key);
                         } else if (msg.type === 'image') {
-                            createImageMessage(msg.url, 'user', key);
+                            createImageMessage(msg.url, msg.sender === 'admin' ? 'support' : 'user', key);
                         } else if (msg.type === 'file') {
                             createFileMessage(msg.fileName, 'user', key);
                         }
@@ -441,7 +441,7 @@
                 db.ref('chats/' + chatId + '/' + msgId).set(msgData);
 
                 if (currentUser) {
-                    db.ref('chats/' + chatId + '/_meta').set({
+                    db.ref('chats/' + chatId + '/_meta').update({
                         username: currentUser.username || currentUser.name || 'User',
                         mobile: chatId,
                         lastMessage: text,
@@ -483,7 +483,7 @@
                         timestamp: Date.now()
                     });
                     if (currentUser) {
-                        db.ref('chats/' + chatId + '/_meta').set({
+                        db.ref('chats/' + chatId + '/_meta').update({
                             username: currentUser.username || currentUser.name || 'User',
                             mobile: chatId,
                             lastMessage: '📷 Image',
