@@ -211,22 +211,23 @@
             }
         });
 
+        const renderedMsgIds = new Set();
+
         db.ref('chats/' + chatId).on('value', (snapshot) => {
             const messages = snapshot.val();
             if (messages) {
                 Object.keys(messages).forEach(key => {
                     const msg = messages[key];
                     if (key === '_meta') return;
-                    if (!document.querySelector(`[data-msg-id="${key}"]`)) {
-                        if (msg.type === 'user') {
-                            createMessage(msg.text, 'user', false, key);
-                        } else if (msg.type === 'support' || msg.type === 'admin') {
-                            createMessage(msg.text, 'support', false, key);
-                        } else if (msg.type === 'image') {
-                            createImageMessage(msg.url, msg.sender === 'admin' ? 'support' : 'user', key);
-                        } else if (msg.type === 'file') {
-                            createFileMessage(msg.fileName, 'user', key);
-                        }
+                    if (renderedMsgIds.has(key) || document.querySelector(`[data-msg-id="${key}"]`)) return;
+                    if (msg.type === 'user') {
+                        createMessage(msg.text, 'user', false, key);
+                    } else if (msg.type === 'support' || msg.type === 'admin') {
+                        createMessage(msg.text, 'support', false, key);
+                    } else if (msg.type === 'image') {
+                        createImageMessage(msg.url, msg.sender === 'admin' ? 'support' : 'user', key);
+                    } else if (msg.type === 'file') {
+                        createFileMessage(msg.fileName, 'user', key);
                     }
                 });
             }
@@ -269,6 +270,10 @@
         }
 
         function createMessage(text, type = 'user', isAnimation = true, msgId = null) {
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            if (renderedMsgIds.has(msgId)) return;
+            renderedMsgIds.add(msgId);
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${type}-wrapper`;
             if (isAnimation) wrapper.style.animationDelay = `${messageCount * 0.8}s`;
@@ -277,7 +282,6 @@
             messageDiv.className = `message ${type}`;
             messageDiv.setAttribute('data-time', getCurrentTime());
 
-            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             messageDiv.setAttribute('data-msg-id', msgId);
             messageDiv.setAttribute('data-id', msgId);
 
@@ -321,12 +325,18 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function createImageMessage(imageSrc, type = 'user') {
+        function createImageMessage(imageSrc, type = 'user', msgId = null) {
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            if (renderedMsgIds.has(msgId)) return;
+            renderedMsgIds.add(msgId);
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${type}-wrapper`;
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type} image-message`;
+
+            messageDiv.setAttribute('data-msg-id', msgId);
 
             messageDiv.innerHTML = `
                 <img src="${imageSrc}" alt="Shared image" class="shared-image">
@@ -337,7 +347,7 @@
             `;
 
             messageDiv.addEventListener('click', () => {
-                showMessagePopup({ id: null, text: '', type: 'image', url: imageSrc, fileName: null, timestamp: Date.now() });
+                showMessagePopup({ id: msgId, text: '', type: 'image', url: imageSrc, fileName: null, timestamp: Date.now() });
             });
 
             wrapper.appendChild(messageDiv);
@@ -345,12 +355,18 @@
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
 
-        function createFileMessage(fileName, type = 'user') {
+        function createFileMessage(fileName, type = 'user', msgId = null) {
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            if (renderedMsgIds.has(msgId)) return;
+            renderedMsgIds.add(msgId);
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${type}-wrapper`;
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type} file-message`;
+
+            messageDiv.setAttribute('data-msg-id', msgId);
 
             messageDiv.innerHTML = `
                 <div class="file-icon">
@@ -604,6 +620,7 @@
                     </div>
                 `;
                 messageCount = 0;
+                renderedMsgIds.clear();
             }
         });
 

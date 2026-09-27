@@ -206,22 +206,23 @@
             }
         });
 
+        const renderedMsgIds = new Set();
+
         db.ref('chats/' + chatId).on('value', (snapshot) => {
             const messages = snapshot.val();
             if (messages) {
                 Object.keys(messages).forEach(key => {
                     const msg = messages[key];
                     if (key === '_meta') return;
-                    if (!document.querySelector(`[data-msg-id="${key}"]`)) {
-                        if (msg.type === 'user') {
-                            createMessage(msg.text, 'user', false, key);
-                        } else if (msg.type === 'support' || msg.type === 'admin') {
-                            createMessage(msg.text, 'support', false, key);
-                        } else if (msg.type === 'image') {
-                            createImageMessage(msg.url, msg.sender === 'admin' ? 'support' : 'user', key);
-                        } else if (msg.type === 'file') {
-                            createFileMessage(msg.fileName, 'user', key);
-                        }
+                    if (renderedMsgIds.has(key) || document.querySelector(`[data-msg-id="${key}"]`)) return;
+                    if (msg.type === 'user') {
+                        createMessage(msg.text, 'user', false, key);
+                    } else if (msg.type === 'support' || msg.type === 'admin') {
+                        createMessage(msg.text, 'support', false, key);
+                    } else if (msg.type === 'image') {
+                        createImageMessage(msg.url, msg.sender === 'admin' ? 'support' : 'user', key);
+                    } else if (msg.type === 'file') {
+                        createFileMessage(msg.fileName, 'user', key);
                     }
                 });
             }
@@ -262,6 +263,10 @@
         }
 
         function createMessage(text, type = 'user', isAnimation = true, msgId = null) {
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            if (renderedMsgIds.has(msgId)) return;
+            renderedMsgIds.add(msgId);
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${type}-wrapper`;
             if (isAnimation) wrapper.style.animationDelay = `${messageCount * 0.8}s`;
@@ -270,7 +275,6 @@
             messageDiv.className = `message ${type}`;
             messageDiv.setAttribute('data-time', getCurrentTime());
 
-            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             messageDiv.setAttribute('data-msg-id', msgId);
             messageDiv.setAttribute('data-id', msgId);
 
@@ -314,13 +318,16 @@
         }
 
         function createImageMessage(imageSrc, type = 'user', msgId = null) {
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            if (renderedMsgIds.has(msgId)) return;
+            renderedMsgIds.add(msgId);
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${type}-wrapper`;
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type} image-message`;
 
-            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             messageDiv.setAttribute('data-msg-id', msgId);
 
             messageDiv.innerHTML = `
@@ -332,7 +339,7 @@
             `;
 
             messageDiv.addEventListener('click', () => {
-                showMessagePopup({ id: null, text: '', type: 'image', url: imageSrc, fileName: null, timestamp: Date.now() });
+                showMessagePopup({ id: msgId, text: '', type: 'image', url: imageSrc, fileName: null, timestamp: Date.now() });
             });
             wrapper.appendChild(messageDiv);
             chatMessages.appendChild(wrapper);
@@ -340,13 +347,16 @@
         }
 
         function createFileMessage(fileName, type = 'user', msgId = null) {
+            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            if (renderedMsgIds.has(msgId)) return;
+            renderedMsgIds.add(msgId);
+
             const wrapper = document.createElement('div');
             wrapper.className = `message-wrapper ${type}-wrapper`;
 
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type} file-message`;
 
-            if (!msgId) msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             messageDiv.setAttribute('data-msg-id', msgId);
 
             messageDiv.innerHTML = `
@@ -541,7 +551,7 @@
             contentHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;"><div style="color:#888;font-size:12px;">' + timeStr + ' | ' + (isUser ? 'You' : 'Support') + '</div></div>';
             content.innerHTML = contentHtml;
             let actionsHtml = '<button onclick="popupReply(\'' + (msg.text || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:#222;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Reply</button>';
-            if (isUser) {
+            if (isUser && !isImage && !isFile) {
                 actionsHtml += '<button onclick="popupEdit(\'' + msg.id + '\', \'' + (msg.text || '').replace(/'/g, "\\'") + '\')" style="flex:1;padding:10px;background:#ff9500;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Edit</button>';
             }
             actionsHtml += '<button onclick="popupDelete(\'' + msg.id + '\')" style="flex:1;padding:10px;background:#ff3b30;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">Delete</button>';
@@ -580,6 +590,7 @@
                     </div>
                 `;
                 messageCount = 0;
+                renderedMsgIds.clear();
             }
         });
 

